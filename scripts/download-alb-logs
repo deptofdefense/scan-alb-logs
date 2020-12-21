@@ -1,0 +1,32 @@
+#! /usr/bin/env bash
+
+set -eu -o pipefail
+
+#
+# Download alb logs for the given environment and dates to a local folder
+#
+# Requires a environment and http code but can also include a date.
+# When a date is not given the current UTC date is used.
+#
+# Example:
+#	../scripts/download-alb-logs bucket_name tmp app-prod 2019/02/14,2019/02/16
+#
+# Note: Each date must be specified, not a date range!
+#
+
+[[ $# -ne 4 ]] && echo "Usage: download-alb-logs <bucket> <dest> <environment:app-prod|app-staging|app-test> [<day:YYYY/mm/dd>[,<day:YYYY/mm/dd>]]" && exit 1
+
+readonly bucket=$1
+readonly dest=$2
+readonly environment=$3
+IFS=', ' read -r -a dates <<< "$4"
+
+accountid=$(aws sts get-caller-identity | jq -r .Account)
+region="${AWS_REGION}"
+
+mkdir -p "${dest}"
+for date in "${dates[@]}"; do
+  # Prevent folks from passing in a date with dashes that we want with slashes
+  parse_date=$(date -d "${date}" "+%Y/%m/%d")
+  aws s3 sync --quiet "s3://${bucket}/alb/${environment}/AWSLogs/${accountid}/elasticloadbalancing/${region}/${parse_date}/" "$dest"
+done
