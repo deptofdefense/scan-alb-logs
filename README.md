@@ -46,3 +46,8 @@ Example with Pattern matching all 5XX codes for a domain:
 ```sh
  ../scripts/scan-alb-logs bucket_name app-prod "5" 2019/02/22 example.com
 ```
+
+## References
+
+This code was originally developed as part of the [Transcom Mymove](https://github.com/transcom/mymove) repository.
+Original code and code history can be found in that repository.
