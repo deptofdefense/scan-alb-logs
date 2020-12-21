@@ -8,7 +8,7 @@ AWS S3 easier.
 Installation requires you have a few utilities already available. Use homebrew to install them for macOS.
 
 ```sh
-brew install jq go gunzip
+brew install coreutils jq go gunzip
 ```
 
 ## Build the tools
