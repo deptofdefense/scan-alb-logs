@@ -47,6 +47,10 @@ Example with Pattern matching all 5XX codes for a domain:
  ../scripts/scan-alb-logs bucket_name app-prod "5" 2019/02/22 example.com
 ```
 
+## License
+
+This project constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC § 105.  However, because the project utilizes code licensed from contributors and other third parties, it therefore is licensed under the MIT License.  See LICENSE file for more information.
+
 ## References
 
 This code was originally developed as part of the [Transcom Mymove](https://github.com/transcom/mymove) repository.
