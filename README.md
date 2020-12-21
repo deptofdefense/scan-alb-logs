@@ -11,6 +11,16 @@ Installation requires you have a few utilities already available. Use homebrew t
 brew install jq go gunzip
 ```
 
+## Build the tools
+
+Before using this tool build the tools:
+
+```sh
+make build
+```
+
+You must have `./bin` and `./scripts` on your `$PATH`. You can use [direnv](https://direnv.net/) to do so or you can manage it manually.
+
 ## Examples
 
 Example with no date (uses current UTC date):
