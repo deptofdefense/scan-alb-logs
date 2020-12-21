@@ -24,7 +24,10 @@ IFS=', ' read -r -a dates <<< "$4"
 accountid=$(aws sts get-caller-identity | jq -r .Account)
 region="${AWS_REGION}"
 
-mkdir -p "${dest}"
+if [[ ! -d "${dest}" ]]; then
+  mkdir -p "${dest}"
+fi
+
 for date in "${dates[@]}"; do
   # Prevent folks from passing in a date with dashes that we want with slashes
   parse_date=$(date -d "${date}" "+%Y/%m/%d")

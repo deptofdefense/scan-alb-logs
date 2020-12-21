@@ -47,10 +47,18 @@ if ! command -v read-alb-logs > /dev/null; then
   exit 1
 fi
 
-rm -rf tmp
-"${DIR}/download-alb-logs" "${bucket}" tmp "${environment}" "${day}"
+TMP_DIR=$(mktemp -d)
+
+function cleanup {
+  echo "Removing ${TMP_DIR}"
+  rm  -r "${TMP_DIR}"
+}
+trap cleanup EXIT
+
+"${DIR}/download-alb-logs" "${bucket}" "${TMP_DIR}" "${environment}" "${day}"
+
 if [[ -n "${domainName}" ]]; then
-  big-cat "./tmp/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | select(.domainName | startswith(\"${domainName}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
+  big-cat "${TMP_DIR}/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | select(.domainName | startswith(\"${domainName}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
 else
-  big-cat "./tmp/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
+  big-cat "${TMP_DIR}/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
 fi
