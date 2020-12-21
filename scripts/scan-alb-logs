@@ -50,7 +50,6 @@ fi
 TMP_DIR=$(mktemp -d)
 
 function cleanup {
-  echo "Removing ${TMP_DIR}"
   rm  -r "${TMP_DIR}"
 }
 trap cleanup EXIT
