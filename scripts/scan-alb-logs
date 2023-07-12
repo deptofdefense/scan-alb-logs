@@ -9,24 +9,24 @@ set -eu -o pipefail
 # When a date is not given the current UTC date is used.
 #
 # Example with no date (uses current UTC date):
-#	../scripts/scan-alb-logs bucket_name app-prod 403
+#       ../scripts/scan-alb-logs bucket_name app-prod 403
 #
 # Example for single code 504:
-#	../scripts/scan-alb-logs bucket_name app-prod 504 2019/02/14,2019/02/16
+#       ../scripts/scan-alb-logs bucket_name app-prod 504 2019/02/14,2019/02/16
 #
 # Example with Pattern matching all 5XX codes:
-#	 ../scripts/scan-alb-logs bucket_name app-prod "5" 2019/02/22
+#        ../scripts/scan-alb-logs bucket_name app-prod "5" 2019/02/22
 #
 # Example with Pattern matching all 5XX codes for a domain:
 #  ../scripts/scan-alb-logs bucket_name app-prod "5" 2019/02/22 example.com
 #
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DIR
 
-if [[  $# -lt 3 ]]  || [[ $# -gt 5 ]]; then
-    echo "Usage: scan-alb-logs <bucket> <environment:app-prod|app-staging|app-test> <http-code> [<day:YYYY/mm/dd>[,<day:YYYY/mm/dd>]] [domainName]"
-    exit 1
+if [[ $# -lt 3 ]] || [[ $# -gt 5 ]]; then
+        echo "Usage: scan-alb-logs <bucket> <environment:app-prod|app-staging|app-test> <http-code> [<day:YYYY/mm/dd>[,<day:YYYY/mm/dd>]] [domainName]"
+        exit 1
 fi
 
 readonly bucket=${1:-}
@@ -35,29 +35,29 @@ readonly http_code=${3:-}
 day=${4:-$(date -u "+%Y/%m/%d")}
 domainName=${5:-}
 
-if ! command -v big-cat > /dev/null; then
-  echo "big-cat tool is required."
-  echo "Build with make bin/big-cat"
-  exit 1
+if ! command -v big-cat >/dev/null; then
+        echo "big-cat tool is required."
+        echo "Build with make bin/big-cat"
+        exit 1
 fi
 
-if ! command -v read-alb-logs > /dev/null; then
-  echo "read-alb-logs tool is required."
-  echo "Build with make bin/read-alb-logs"
-  exit 1
+if ! command -v read-alb-logs >/dev/null; then
+        echo "read-alb-logs tool is required."
+        echo "Build with make bin/read-alb-logs"
+        exit 1
 fi
 
 TMP_DIR=$(mktemp -d)
 
 function cleanup {
-  rm  -r "${TMP_DIR}"
+        rm -r "${TMP_DIR}"
 }
 trap cleanup EXIT
 
 "${DIR}/download-alb-logs" "${bucket}" "${TMP_DIR}" "${environment}" "${day}"
 
 if [[ -n "${domainName}" ]]; then
-  big-cat "${TMP_DIR}/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | select(.domainName | startswith(\"${domainName}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
+        big-cat "${TMP_DIR}/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | select(.domainName | startswith(\"${domainName}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
 else
-  big-cat "${TMP_DIR}/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
+        big-cat "${TMP_DIR}/*.${environment}.*.log.gz" | gunzip | read-alb-logs | jq -c ". | select( .elbStatusCode | startswith(\"${http_code}\")) | {requestType, timestamp, clientPort, elbStatusCode, targetStatusCode, domainName, request, actionsExecuted}"
 fi
